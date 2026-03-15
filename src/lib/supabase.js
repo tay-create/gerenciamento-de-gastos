@@ -1,18 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Fallback direto para garantir funcionamento no deploy (Chave Pública Anon)
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://tcliktsvpttxdnuzkeum.supabase.co';
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjbGlrdHN2cHR0eGRudXprZXVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1OTc5NDYsImV4cCI6MjA4OTE3Mzk0Nn0.wSt1CH2YOniSzI0mdQg6Uqx5dN2qHbVN-fiATl8JZVw';
 
 let supabaseInstance = null;
 
-if (supabaseUrl && supabaseAnonKey) {
-  try {
-    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
-  } catch (error) {
-    console.error('Falha ao instanciar o cliente Supabase:', error);
+try {
+  if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+    supabaseInstance = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
-} else {
-  console.warn('Variáveis VITE_SUPABASE_URL ou VITE_SUPABASE_ANON_KEY não encontradas.');
+} catch (error) {
+  console.error('Erro crítico na inicialização do Supabase:', error);
 }
 
 export const supabase = supabaseInstance;
