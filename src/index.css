@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-dark-900 text-white font-sans antialiased min-h-screen selection:bg-neon-cyan selection:text-dark-900;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+}
+
+/* Scrollbar styling for desktop use */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #111111; 
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2a2a; 
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #00f3ff; 
+}
