@@ -106,19 +106,22 @@ export default function Dashboard({ session }) {
     if (!description || !amount) return;
 
     const totalAmount = parseFloat(amount);
-    const parsedInstallments = parseInt(installments, 10) || 1;
-    const amountPerInstallment = totalAmount / parsedInstallments;
+    const numInstallments = parseInt(installments, 10) || 1;
+    
+    // Calcula o valor base de cada parcela e o resto dos centavos
+    const amountPerInstallment = Math.floor((totalAmount / numInstallments) * 100) / 100;
+    const remainder = parseFloat((totalAmount - (amountPerInstallment * numInstallments)).toFixed(2));
 
     const newTransactions = [];
     
-    // Se for parcelado, criamos N registros no banco
-    for (let i = 0; i < parsedInstallments; i++) {
+    for (let i = 0; i < numInstallments; i++) {
       const dateForInstallment = addMonths(new Date(), i);
+      const isLast = i === numInstallments - 1;
       
       newTransactions.push({
         user_id: session.user.id,
-        description: parsedInstallments > 1 ? `${description} (${i + 1}/${parsedInstallments})` : description,
-        amount: amountPerInstallment,
+        description: numInstallments > 1 ? `${description} (${i + 1}/${numInstallments})` : description,
+        amount: isLast ? parseFloat((amountPerInstallment + remainder).toFixed(2)) : amountPerInstallment,
         type,
         category: type === 'income' ? 'Entradas' : category,
         date: dateForInstallment.toISOString()
