@@ -9,6 +9,16 @@
     padding: 0;
     overflow-x: hidden;
   }
+  
+  /* Remove as setinhas feias de input number em todos os navegadores */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
 }
 
 /* Scrollbar styling for desktop use */
