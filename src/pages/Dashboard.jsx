@@ -39,6 +39,7 @@ async function askGemini(prompt) {
       body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
     }
   );
+  if (res.status === 429) throw new Error('RATE_LIMIT');
   if (!res.ok) throw new Error('Erro na API Gemini: ' + res.status);
   const data = await res.json();
   return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
@@ -257,8 +258,11 @@ Se não conseguir identificar parcelas, use 1.`;
       setCategory(json.category || 'Outros');
       setInstallments(json.installments || 1);
       setSelectedCard('');
-    } catch {
-      alert('Não consegui interpretar o que você disse. Tente de novo com mais detalhes.');
+    } catch (err) {
+      if (err.message === 'RATE_LIMIT')
+        alert('Limite de requisições atingido. Aguarde alguns segundos e tente novamente.');
+      else
+        alert('Não consegui interpretar o que você disse. Tente de novo com mais detalhes.');
     }
     setLoadingAI(false);
   };
@@ -285,8 +289,11 @@ Use linguagem amigável, sem markdown, sem asteriscos.`;
     try {
       const analysis = await askGemini(prompt);
       setAiAnalysis(analysis);
-    } catch {
-      setAiAnalysis('Erro ao conectar com o Gemini. Verifique sua chave de API.');
+    } catch (err) {
+      if (err.message === 'RATE_LIMIT')
+        setAiAnalysis('Limite de requisições atingido (15/min no plano gratuito). Aguarde alguns segundos e clique em "Analisar novamente".');
+      else
+        setAiAnalysis('Erro ao conectar com o Gemini. Verifique sua chave de API nas variáveis de ambiente do Vercel.');
     }
     setLoadingAI(false);
   };
