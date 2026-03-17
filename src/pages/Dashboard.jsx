@@ -549,11 +549,11 @@ Use linguagem amigável, sem markdown, sem asteriscos.`;
               <span className="text-dark-500 text-xs">Análise do Mês</span>
             </div>
 
-            <div className="flex-1 w-full relative" style={{ minHeight: '220px' }}>
+            <div className="w-full" style={{ height: '260px' }}>
               {/* Aba categorias */}
               {chartTab === 'categories' && (
                 chartData.length > 0 && !loadingData ? (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height={260}>
                     <PieChart>
                       <Pie data={chartData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={5} dataKey="value" stroke="none">
                         {chartData.map((entry, i) => <Cell key={i} fill={entry.color} style={{ filter: `drop-shadow(0 0 5px ${entry.color})` }} />)}
@@ -562,7 +562,7 @@ Use linguagem amigável, sem markdown, sem asteriscos.`;
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-dark-500">
+                  <div className="h-full flex items-center justify-center text-dark-500">
                     <p>{loadingData ? 'Buscando do banco...' : 'Sem dados suficientes neste mês.'}</p>
                   </div>
                 )
@@ -571,7 +571,7 @@ Use linguagem amigável, sem markdown, sem asteriscos.`;
               {/* Aba cartões */}
               {chartTab === 'cards' && (
                 cardChartData.length > 0 && !loadingData ? (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={cardChartData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#1a1a1a" />
                       <XAxis dataKey="name" tick={{ fill: '#666', fontSize: 12 }} axisLine={false} tickLine={false} />
@@ -585,7 +585,7 @@ Use linguagem amigável, sem markdown, sem asteriscos.`;
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-dark-500">
+                  <div className="h-full flex items-center justify-center text-dark-500">
                     <p>{loadingData ? 'Buscando do banco...' : 'Nenhum gasto por cartão neste mês.'}</p>
                   </div>
                 )
