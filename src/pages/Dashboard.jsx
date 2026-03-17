@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Plus, Trash2, Wallet, TrendingUp, TrendingDown, Coffee, Car, Home, DollarSign, Activity, PieChart as PieChartIcon, LogOut, ChevronLeft, ChevronRight, Camera, Zap, Droplets, Wifi, Fuel, Gamepad2, CreditCard, X, Settings, Mic, MicOff, Bot, BarChart2 } from 'lucide-react';
+import { Plus, Trash2, Wallet, TrendingUp, TrendingDown, Coffee, Car, Home, DollarSign, Activity, PieChart as PieChartIcon, LogOut, ChevronLeft, ChevronRight, Camera, Zap, Droplets, Wifi, Fuel, Gamepad2, CreditCard, X, Settings, Mic, MicOff, Bot, BarChart2, GraduationCap } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { supabase } from '../lib/supabase';
 import { addMonths, format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
@@ -15,8 +15,9 @@ const CATEGORIES = {
   Agua:        { label: 'Conta de Água',    color: '#38bdf8', icon: Droplets  },
   Internet:    { label: 'Internet',         color: '#a78bfa', icon: Wifi      },
   Gasolina:    { label: 'Gasolina',         color: '#fb923c', icon: Fuel      },
-  Lazer:       { label: 'Lazer',            color: '#f472b6', icon: Gamepad2  },
-  Cartoes:     { label: 'Cartões',          color: '#e2e8f0', icon: CreditCard},
+  Lazer:       { label: 'Lazer',            color: '#f472b6', icon: Gamepad2     },
+  Educacao:    { label: 'Educação',         color: '#34d399', icon: GraduationCap},
+  Cartoes:     { label: 'Cartões',          color: '#e2e8f0', icon: CreditCard   },
   Entradas:    { label: 'Entradas',         color: '#39ff14', icon: TrendingUp},
   Outros:      { label: 'Outros',           color: '#ff5e00', icon: Activity  },
 };
@@ -486,6 +487,7 @@ Use linguagem amigável, sem markdown, sem asteriscos.`;
                     <option value="Internet">Internet</option>
                     <option value="Gasolina">Gasolina</option>
                     <option value="Lazer">Lazer</option>
+                    <option value="Educacao">Educação</option>
                     <option value="Cartoes">Cartões</option>
                     <option value="Outros">Outros</option>
                   </select>
