@@ -28,22 +28,18 @@ const CARD_BANKS = ['Nubank', 'Itaú', 'Bradesco', 'Santander', 'Caixa', 'Banco 
 const inputCls  = "w-full bg-dark-900 border border-dark-700 text-white rounded-2xl p-4 text-lg focus:outline-none focus:border-neon-cyan focus:shadow-[0_0_10px_rgba(0,243,255,0.2)] transition-all placeholder:text-dark-500";
 const selectCls = `${inputCls} appearance-none cursor-pointer`;
 
-/* ─── Gemini helper ─── */
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
-
+/* ─── Gemini helper (via serverless /api/gemini) ─── */
 async function askGemini(prompt) {
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-    }
-  );
+  const res = await fetch('/api/gemini', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt }),
+  });
   if (res.status === 429) throw new Error('RATE_LIMIT');
   if (!res.ok) throw new Error('Erro na API Gemini: ' + res.status);
   const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  if (data.error) throw new Error(data.error);
+  return data.text || '';
 }
 
 export default function Dashboard({ session }) {
@@ -236,7 +232,6 @@ export default function Dashboard({ session }) {
 
   /* ─── Gemini: processar voz → preencher form ─── */
   const processVoiceWithGemini = async (text) => {
-    if (!GEMINI_API_KEY) { alert('Configure a chave VITE_GEMINI_API_KEY no .env'); return; }
     setLoadingAI(true);
     const categorias = Object.entries(CATEGORIES)
       .filter(([k]) => k !== 'Entradas')
@@ -270,7 +265,6 @@ Se não conseguir identificar parcelas, use 1.`;
 
   /* ─── Gemini: análise financeira ─── */
   const handleAIAnalysis = async () => {
-    if (!GEMINI_API_KEY) { alert('Configure a chave VITE_GEMINI_API_KEY no .env'); return; }
     setLoadingAI(true);
     setShowAIPanel(true);
     setAiAnalysis('');
