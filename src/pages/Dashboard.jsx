@@ -417,10 +417,37 @@ Use linguagem amigável, sem markdown, sem asteriscos.`;
 
           {/* Cards resumo */}
           <section className="grid grid-cols-1 gap-4">
-            <div className="bg-dark-800 rounded-3xl p-6 border border-dark-700 shadow-neon-cyan relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-6 opacity-20 group-hover:opacity-40 transition-opacity"><DollarSign className="w-16 h-16 text-neon-cyan" /></div>
-              <p className="text-dark-300 font-medium mb-1 relative z-10">Saldo Total (Mês Atual)</p>
-              <h2 className="text-4xl font-bold text-white relative z-10 group-hover:text-neon-cyan transition-colors">{loadingData ? '...' : formatCurrency(summary.total)}</h2>
+            <div className={`bg-dark-800 rounded-3xl p-6 border transition-all relative overflow-hidden group ${summary.total >= 0 ? 'border-dark-700 shadow-neon-cyan' : 'border-neon-pink/50 shadow-[0_0_15px_rgba(255,0,255,0.2)]'}`}>
+              <div className="absolute top-0 right-0 p-6 opacity-20 group-hover:opacity-40 transition-opacity">
+                <DollarSign className={`w-16 h-16 ${summary.total >= 0 ? 'text-neon-cyan' : 'text-neon-pink'}`} />
+              </div>
+              <p className="text-dark-300 font-medium mb-1 relative z-10">Saldo Restante (Mês Atual)</p>
+              <h2 className={`text-4xl font-bold relative z-10 transition-colors ${summary.total >= 0 ? 'text-white group-hover:text-neon-cyan' : 'text-neon-pink'}`}>
+                {loadingData ? '...' : formatCurrency(summary.total)}
+              </h2>
+              
+              {!loadingData && (
+                <div className="mt-3 relative z-10">
+                  <p className={`text-sm font-medium ${summary.total >= 0 ? 'text-neon-cyan' : 'text-neon-pink'}`}>
+                    {summary.total >= 0 
+                      ? `✨ Sobrou ${formatCurrency(summary.total)} após todas as despesas` 
+                      : `⚠️ Faltam ${formatCurrency(Math.abs(summary.total))} para cobrir as despesas`}
+                  </p>
+                  
+                  {summary.income > 0 && (
+                    <div className="w-full bg-dark-700 h-2 rounded-full mt-2 overflow-hidden flex" title={`${((summary.expense / summary.income) * 100).toFixed(0)}% comprometido`}>
+                       <div 
+                         className="bg-neon-pink h-full transition-all" 
+                         style={{ width: `${Math.min((summary.expense / summary.income) * 100, 100)}%` }} 
+                       />
+                       <div 
+                         className="bg-neon-cyan h-full transition-all" 
+                         style={{ width: `${Math.max(0, ((summary.income - summary.expense) / summary.income) * 100)}%` }} 
+                       />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-dark-800 rounded-3xl p-6 border border-dark-700 shadow-[0_0_15px_rgba(57,255,20,0.1)] hover:shadow-[0_0_20px_rgba(57,255,20,0.2)] transition-shadow">
