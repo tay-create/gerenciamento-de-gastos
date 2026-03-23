@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Plus, Trash2, Wallet, TrendingUp, TrendingDown, Coffee, Car, Home, DollarSign, Activity, PieChart as PieChartIcon, LogOut, ChevronLeft, ChevronRight, Camera, Zap, Droplets, Wifi, Fuel, Gamepad2, CreditCard, X, Settings, Mic, MicOff, Bot, BarChart2, GraduationCap } from 'lucide-react';
+import { Plus, Trash2, Wallet, TrendingUp, TrendingDown, Coffee, Car, Home, DollarSign, Activity, PieChart as PieChartIcon, LogOut, ChevronLeft, ChevronRight, Camera, Zap, Droplets, Wifi, Fuel, Gamepad2, CreditCard, X, Settings, Mic, MicOff, Bot, BarChart2, GraduationCap, Repeat } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { supabase } from '../lib/supabase';
 import { addMonths, format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
@@ -52,6 +52,7 @@ export default function Dashboard({ session }) {
   const [type, setType]                 = useState('expense');
   const [category, setCategory]         = useState('Alimentacao');
   const [installments, setInstallments] = useState(1);
+  const [isRecurring, setIsRecurring]   = useState(false);
   const [isExporting, setIsExporting]   = useState(false);
   const [loadingData, setLoadingData]   = useState(true);
   const [currentDate, setCurrentDate]   = useState(new Date());
@@ -173,11 +174,12 @@ export default function Dashboard({ session }) {
         category:    type === 'income' ? 'Entradas' : category,
         date:        addMonths(new Date(), i).toISOString(),
         card_id:     (type === 'expense' && category === 'Cartoes' && selectedCard) ? selectedCard : null,
+        is_recurring: isRecurring,
       });
     }
     const { error } = await supabase.from('transactions').insert(newTransactions);
     if (error) { alert('Houve um erro ao salvar: ' + error.message); }
-    else { setDescription(''); setAmount(''); setInstallments(1); setSelectedCard(''); fetchTransactions(); }
+    else { setDescription(''); setAmount(''); setInstallments(1); setSelectedCard(''); setIsRecurring(false); fetchTransactions(); }
   };
 
   /* ─── Cartões ─── */
@@ -551,6 +553,24 @@ Use linguagem amigável, sem markdown, sem asteriscos.`;
                 </div>
               )}
 
+              {/* Toggle Recorrente */}
+              <div className="p-4 bg-dark-900 border border-dark-700 rounded-2xl flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Repeat className={`w-5 h-5 transition-colors ${isRecurring ? 'text-neon-cyan' : 'text-dark-500'}`} />
+                  <div>
+                    <p className={`text-sm font-bold transition-colors ${isRecurring ? 'text-white' : 'text-dark-400'}`}>Recorrente</p>
+                    <p className="text-xs text-dark-500">Cobrado todo mês até desativar</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsRecurring(!isRecurring)}
+                  className={`relative w-14 h-7 rounded-full transition-all duration-300 ${isRecurring ? 'bg-neon-cyan/20 border border-neon-cyan shadow-[0_0_10px_rgba(0,243,255,0.3)]' : 'bg-dark-700 border border-dark-600'}`}
+                >
+                  <span className={`absolute top-0.5 w-6 h-6 rounded-full transition-all duration-300 ${isRecurring ? 'left-7 bg-neon-cyan shadow-[0_0_8px_rgba(0,243,255,0.6)]' : 'left-0.5 bg-dark-500'}`} />
+                </button>
+              </div>
+
               <button type="submit" className="w-full bg-dark-700 hover:bg-dark-600 border border-dark-600 text-white font-bold rounded-2xl p-5 text-lg transition-all flex items-center justify-center gap-2 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] active:scale-[0.98]">
                 <Plus className="w-6 h-6" /> ADICIONAR REGISTRO
               </button>
@@ -647,6 +667,7 @@ Use linguagem amigável, sem markdown, sem asteriscos.`;
                         <p className="font-semibold text-lg text-white">{t.description}</p>
                         <p className="text-dark-400 text-sm">
                           {format(parseISO(t.date), 'dd/MM/yyyy')} · {CATEGORIES[safeCategory]?.label || safeCategory}
+                          {t.is_recurring && <span className="text-neon-cyan/60 ml-1 inline-flex items-center gap-0.5"><Repeat className="w-3 h-3 inline" /> Recorrente</span>}
                           {cardInfo && <span className="text-[#e2e8f080] ml-1">— {cardInfo.nickname} ({cardInfo.flag})</span>}
                         </p>
                       </div>
