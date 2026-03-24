@@ -83,6 +83,7 @@ export default function Dashboard({ session }) {
   /* ─── Fetch ─── */
   const fetchTransactions = async () => {
     setLoadingData(true);
+    await ensureRecurringTransactions();
     const start = startOfMonth(currentDate).toISOString();
     const end   = endOfMonth(currentDate).toISOString();
     const { data, error } = await supabase
@@ -93,6 +94,54 @@ export default function Dashboard({ session }) {
     if (error) console.error('Erro ao buscar do Supabase:', error);
     else setTransactions(data || []);
     setLoadingData(false);
+  };
+
+  /* ─── Recorrência: gera cópias do mês atual se não existirem ─── */
+  const ensureRecurringTransactions = async () => {
+    // Busca todas as transações "origem" de recorrência deste usuário
+    const { data: origins } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .eq('is_recurring', true)
+      .is('recurring_origin_id', null);
+
+    if (!origins?.length) return;
+
+    const monthStart = startOfMonth(currentDate).toISOString();
+    const monthEnd   = endOfMonth(currentDate).toISOString();
+
+    // Verifica quais origens já têm entrada neste mês (como origem ou como cópia)
+    const originIds = origins.map(o => o.id);
+    const { data: existingThisMonth } = await supabase
+      .from('transactions')
+      .select('id, recurring_origin_id')
+      .eq('user_id', session.user.id)
+      .gte('date', monthStart)
+      .lte('date', monthEnd)
+      .or(`id.in.(${originIds.join(',')}),recurring_origin_id.in.(${originIds.join(',')})`);
+
+    const coveredIds = new Set([
+      ...(existingThisMonth?.filter(t => originIds.includes(t.id)).map(t => t.id) || []),
+      ...(existingThisMonth?.filter(t => t.recurring_origin_id).map(t => t.recurring_origin_id) || []),
+    ]);
+
+    const toCreate = origins.filter(o => !coveredIds.has(o.id));
+    if (!toCreate.length) return;
+
+    await supabase.from('transactions').insert(
+      toCreate.map(o => ({
+        user_id:            o.user_id,
+        description:        o.description,
+        amount:             o.amount,
+        type:               o.type,
+        category:           o.category,
+        card_id:            o.card_id,
+        is_recurring:       true,
+        recurring_origin_id: o.id,
+        date:               startOfMonth(currentDate).toISOString(),
+      }))
+    );
   };
 
   const fetchCards = async () => {
@@ -177,9 +226,19 @@ export default function Dashboard({ session }) {
         is_recurring: isRecurring,
       });
     }
-    const { error } = await supabase.from('transactions').insert(newTransactions);
+    const { data: inserted, error } = await supabase.from('transactions').insert(newTransactions).select();
     if (error) { alert('Houve um erro ao salvar: ' + error.message); }
-    else { setDescription(''); setAmount(''); setInstallments(1); setSelectedCard(''); setIsRecurring(false); fetchTransactions(); }
+    else {
+      // Se recorrente e parcela única, marca o primeiro insert como origem
+      if (isRecurring && inserted?.length === 1) {
+        await supabase.from('transactions')
+          .update({ recurring_origin_id: null })
+          .eq('id', inserted[0].id);
+        // já está null, mas garante que fica como "origem" (recurring_origin_id = null)
+      }
+      setDescription(''); setAmount(''); setInstallments(1); setSelectedCard(''); setIsRecurring(false);
+      fetchTransactions();
+    }
   };
 
   /* ─── Cartões ─── */
@@ -204,6 +263,15 @@ export default function Dashboard({ session }) {
   const handleDelete = async (id) => {
     const { error } = await supabase.from('transactions').delete().eq('id', id);
     if (!error) setTransactions(transactions.filter(t => t.id !== id));
+  };
+
+  /* Encerra recorrência: desativa a origem e todas as cópias futuras */
+  const handleStopRecurring = async (t) => {
+    const originId = t.recurring_origin_id ?? t.id;
+    await supabase.from('transactions')
+      .update({ is_recurring: false })
+      .or(`id.eq.${originId},recurring_origin_id.eq.${originId}`);
+    fetchTransactions();
   };
 
   /* ─── Voz ─── */
@@ -676,7 +744,12 @@ Use linguagem amigável, sem markdown, sem asteriscos.`;
                       <span className={`font-bold text-lg ${isIncome ? 'text-neon-green' : 'text-neon-pink'}`}>
                         {isIncome ? '+' : '-'} {formatCurrency(t.amount)}
                       </span>
-                      <button onClick={() => handleDelete(t.id)} data-html2canvas-ignore="true" className="p-2 text-dark-500 hover:text-neon-pink hover:bg-dark-800 rounded-lg transition-colors md:opacity-0 group-hover:opacity-100" title="Excluir do Banco">
+                      {t.is_recurring && (
+                        <button onClick={() => handleStopRecurring(t)} data-html2canvas-ignore="true" className="p-2 text-dark-500 hover:text-neon-cyan hover:bg-dark-800 rounded-lg transition-colors md:opacity-0 group-hover:opacity-100" title="Encerrar recorrência">
+                          <Repeat className="w-5 h-5" />
+                        </button>
+                      )}
+                      <button onClick={() => handleDelete(t.id)} data-html2canvas-ignore="true" className="p-2 text-dark-500 hover:text-neon-pink hover:bg-dark-800 rounded-lg transition-colors md:opacity-0 group-hover:opacity-100" title="Excluir">
                         <Trash2 className="w-5 h-5" />
                       </button>
                     </div>
