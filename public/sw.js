@@ -1,4 +1,4 @@
-const CACHE = 'neon-finance-v3';
+const CACHE = 'neon-finance-v4';
 const ASSETS = ['/', '/index.html'];
 
 self.addEventListener('install', e => {
