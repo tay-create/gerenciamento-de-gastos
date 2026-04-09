@@ -221,7 +221,11 @@ export default function Dashboard({ session }) {
         amount:      isLast ? parseFloat((amountPerInstallment + remainder).toFixed(2)) : amountPerInstallment,
         type,
         category:    type === 'income' ? 'Entradas' : category,
-        date:        addMonths(startOfMonth(currentDate), i).toISOString(),
+        date:        (() => {
+          const base = new Date(currentDate);
+          base.setDate(new Date().getDate());
+          return addMonths(base, i).toISOString();
+        })(),
         card_id:     (type === 'expense' && category === 'Cartoes' && selectedCard) ? selectedCard : null,
         is_recurring: isRecurring,
       });
